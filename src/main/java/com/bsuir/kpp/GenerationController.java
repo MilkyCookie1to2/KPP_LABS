@@ -27,7 +27,7 @@ public class GenerationController {
     @GetMapping("/less")
     public GeneratedNumber generateLess(@RequestParam(value = "number", defaultValue = "0") @Min(0) Integer number) {
         new Thread(CounterService::increment).start();
-        if (hashMap.findByKeyInHashMapLess(number)) {
+        if (hashMap.containsKeyInHashMapLess(number)) {
             return hashMap.getParametersLess(number);
         } else {
             GeneratedNumber result = new GeneratedNumber((int) (Math.random() * (number + 1)));
@@ -40,7 +40,7 @@ public class GenerationController {
     @GetMapping("/more")
     public GeneratedNumber generateMore(@RequestParam(value = "number", defaultValue = "0") @Min(0) Integer number) {
         new Thread(CounterService::increment).start();
-        if (hashMap.findByKeyInHashMapMore(number)) {
+        if (hashMap.containsKeyInHashMapMore(number)) {
             return hashMap.getParametersMore(number);
         } else {
             GeneratedNumber result = new GeneratedNumber((int) (Math.random() * 100 + number));
