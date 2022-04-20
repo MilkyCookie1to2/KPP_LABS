@@ -10,11 +10,11 @@ public class NumbersCache {
     private final Map<Integer, GeneratedNumber> hashMapLess = new LinkedHashMap<>();
     private final Map<Integer, GeneratedNumber> hashMapMore = new LinkedHashMap<>();
 
-    public boolean isContainMore(Integer key) {
+    public boolean findByKeyInHashMapMore(Integer key) {
         return hashMapMore.containsKey(key);
     }
 
-    public boolean isContainLess(Integer key) {
+    public boolean findByKeyInHashMapLess(Integer key) {
         return hashMapLess.containsKey(key);
     }
 

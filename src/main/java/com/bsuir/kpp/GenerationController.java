@@ -26,34 +26,28 @@ public class GenerationController {
 
     @GetMapping("/less")
     public GeneratedNumber generateLess(@RequestParam(value = "number", defaultValue = "0") @Min(0) Integer number) {
-        Thread thread = new Thread() {
-            public void run(){
-                CounterService.increment();
-            }
-        };
-        thread.start();
-        if(hashMap.isContainLess(number))
+        new Thread(CounterService::increment).start();
+        if (hashMap.findByKeyInHashMapLess(number)) {
             return hashMap.getParametersLess(number);
-        GeneratedNumber result = new GeneratedNumber((int) (Math.random() * (number+1)));
-        hashMap.addToMapLess(number, result);
-        logger.info("Success request get random number less");
-        return result;
+        } else {
+            GeneratedNumber result = new GeneratedNumber((int) (Math.random() * (number + 1)));
+            hashMap.addToMapLess(number, result);
+            logger.info("Success request get random number less");
+            return result;
+        }
     }
 
     @GetMapping("/more")
     public GeneratedNumber generateMore(@RequestParam(value = "number", defaultValue = "0") @Min(0) Integer number) {
-        Thread thread = new Thread() {
-            public void run(){
-                CounterService.increment();
-            }
-        };
-        thread.start();
-        if(hashMap.isContainMore(number))
+        new Thread(CounterService::increment).start();
+        if (hashMap.findByKeyInHashMapMore(number)) {
             return hashMap.getParametersMore(number);
-        GeneratedNumber result = new GeneratedNumber((int) (Math.random() * 100 + number));
-        hashMap.addToMapMore(number, result);
-        logger.info("Success request get random number more");
-        return result;
+        } else {
+            GeneratedNumber result = new GeneratedNumber((int) (Math.random() * 100 + number));
+            hashMap.addToMapMore(number, result);
+            logger.info("Success request get random number more");
+            return result;
+        }
     }
 
     @GetMapping("/counter")
