@@ -6,14 +6,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import javax.validation.ConstraintViolationException;
+import javax.validation.Valid;
 import javax.validation.constraints.Min;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 @Validated
@@ -48,6 +48,58 @@ public class GenerationController {
             logger.info("Success request get random number more");
             return result;
         }
+    }
+
+    @PostMapping("/more")
+    public ResponseEntity<?> calculateBulkForMore(@Valid @RequestBody List<Integer> bodyList) {
+        List<Integer> resultMoreList = new LinkedList<>();
+        bodyList.forEach((currentElem) -> {
+            resultMoreList.add((int) (Math.random() * 100 + currentElem));
+        });
+
+        logger.info("Successfully postMapping");
+
+        double averageResult = 0;
+        if (!resultMoreList.isEmpty()) {
+            averageResult = resultMoreList.stream().mapToInt(Integer::intValue).average().getAsDouble();
+        }
+        int maxResult = 0;
+        if (!resultMoreList.isEmpty()) {
+            maxResult = resultMoreList.stream().mapToInt(Integer::intValue).max().getAsInt();
+        }
+        int minResult = 0;
+        if (!resultMoreList.isEmpty()) {
+            minResult = resultMoreList.stream().mapToInt(Integer::intValue).min().getAsInt();
+        }
+
+        return new ResponseEntity<>(resultMoreList + "\nAverage: " + averageResult + "\nMax result: " +
+                maxResult + "\nMin result: " + minResult, HttpStatus.OK);
+    }
+
+    @PostMapping("/less")
+    public ResponseEntity<?> calculateBulkForLess(@Valid @RequestBody List<Integer> bodyList) {
+        List<Integer> resultLessList = new LinkedList<>();
+        bodyList.forEach((currentElem) -> {
+            resultLessList.add((int) (Math.random() * (currentElem + 1)));
+        });
+
+        logger.info("Successfully postMapping");
+
+        double averageResult = 0;
+        if (!resultLessList.isEmpty()) {
+            averageResult = resultLessList.stream().mapToInt(Integer::intValue).average().getAsDouble();
+        }
+        int maxResult = 0;
+        if (!resultLessList.isEmpty()) {
+            maxResult = resultLessList.stream().mapToInt(Integer::intValue).max().getAsInt();
+        }
+        int minResult = 0;
+        if (!resultLessList.isEmpty()) {
+            minResult = resultLessList.stream().mapToInt(Integer::intValue).min().getAsInt();
+        }
+
+        return new ResponseEntity<>(resultLessList + "\nAverage: " + averageResult + "\nMax result: " +
+                maxResult + "\nMin result: " + minResult, HttpStatus.OK);
     }
 
     @GetMapping("/counter")
