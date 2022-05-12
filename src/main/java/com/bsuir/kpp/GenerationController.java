@@ -1,5 +1,7 @@
 package com.bsuir.kpp;
 
+import com.bsuir.kpp.service.CounterService;
+import com.bsuir.kpp.service.LogicService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,9 +14,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Validated
 @RestController
@@ -30,7 +30,7 @@ public class GenerationController {
         if (hashMap.findByKeyInHashMapLess(number)) {
             return hashMap.getParametersLess(number);
         } else {
-            GeneratedNumber result = new GeneratedNumber((int) (Math.random() * (number + 1)));
+            GeneratedNumber result = LogicService.findLess(number);
             hashMap.addToMapLess(number, result);
             logger.info("Success request get random number less");
             return result;
@@ -43,7 +43,7 @@ public class GenerationController {
         if (hashMap.findByKeyInHashMapMore(number)) {
             return hashMap.getParametersMore(number);
         } else {
-            GeneratedNumber result = new GeneratedNumber((int) (Math.random() * 100 + number));
+            GeneratedNumber result = LogicService.findMore(number);
             hashMap.addToMapMore(number, result);
             logger.info("Success request get random number more");
             return result;
@@ -52,54 +52,58 @@ public class GenerationController {
 
     @PostMapping("/more")
     public ResponseEntity<?> calculateBulkForMore(@Valid @RequestBody List<Integer> bodyList) {
-        List<Integer> resultMoreList = new LinkedList<>();
-        bodyList.forEach((currentElem) -> {
-            resultMoreList.add((int) (Math.random() * 100 + currentElem));
-        });
+        if (bodyList.isEmpty()) {
+            new ResponseEntity<>(new ResultDto(), HttpStatus.OK);
+        }
+        List<GeneratedNumber> resultMoreList = new LinkedList<>();
+        bodyList.forEach(currentElem -> resultMoreList.add(LogicService.findMore(currentElem)));
 
         logger.info("Successfully postMapping");
-
-        double averageResult = 0;
+        ResultDto dto = new ResultDto();
         if (!resultMoreList.isEmpty()) {
-            averageResult = resultMoreList.stream().mapToInt(Integer::intValue).average().getAsDouble();
+            dto.setList(resultMoreList);
+            OptionalDouble opDouble = resultMoreList.stream().map(GeneratedNumber::getValue).mapToInt(Integer::intValue).average();
+            if (opDouble.isPresent()) {
+                dto.setAverageResult(opDouble.getAsDouble());
+            }
+            OptionalInt opInt = resultMoreList.stream().map(GeneratedNumber::getValue).mapToInt(Integer::intValue).max();
+            if (opInt.isPresent()) {
+                dto.setMaxResult(opInt.getAsInt());
+            }
+            opInt = resultMoreList.stream().map(GeneratedNumber::getValue).mapToInt(Integer::intValue).min();
+            if (opInt.isPresent()) {
+                dto.setMinResult(opInt.getAsInt());
+            }
         }
-        int maxResult = 0;
-        if (!resultMoreList.isEmpty()) {
-            maxResult = resultMoreList.stream().mapToInt(Integer::intValue).max().getAsInt();
-        }
-        int minResult = 0;
-        if (!resultMoreList.isEmpty()) {
-            minResult = resultMoreList.stream().mapToInt(Integer::intValue).min().getAsInt();
-        }
-
-        return new ResponseEntity<>(resultMoreList + "\nAverage: " + averageResult + "\nMax result: " +
-                maxResult + "\nMin result: " + minResult, HttpStatus.OK);
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @PostMapping("/less")
     public ResponseEntity<?> calculateBulkForLess(@Valid @RequestBody List<Integer> bodyList) {
-        List<Integer> resultLessList = new LinkedList<>();
-        bodyList.forEach((currentElem) -> {
-            resultLessList.add((int) (Math.random() * (currentElem + 1)));
-        });
+        if (bodyList.isEmpty()) {
+            new ResponseEntity<>(new ResultDto(), HttpStatus.OK);
+        }
+        List<GeneratedNumber> resultMoreList = new LinkedList<>();
+        bodyList.forEach(currentElem -> resultMoreList.add(LogicService.findLess(currentElem)));
 
         logger.info("Successfully postMapping");
-
-        double averageResult = 0;
-        if (!resultLessList.isEmpty()) {
-            averageResult = resultLessList.stream().mapToInt(Integer::intValue).average().getAsDouble();
+        ResultDto dto = new ResultDto();
+        if (!resultMoreList.isEmpty()) {
+            dto.setList(resultMoreList);
+            OptionalDouble opDouble = resultMoreList.stream().map(GeneratedNumber::getValue).mapToInt(Integer::intValue).average();
+            if (opDouble.isPresent()) {
+                dto.setAverageResult(opDouble.getAsDouble());
+            }
+            OptionalInt opInt = resultMoreList.stream().map(GeneratedNumber::getValue).mapToInt(Integer::intValue).max();
+            if (opInt.isPresent()) {
+                dto.setMaxResult(opInt.getAsInt());
+            }
+            opInt = resultMoreList.stream().map(GeneratedNumber::getValue).mapToInt(Integer::intValue).min();
+            if (opInt.isPresent()) {
+                dto.setMinResult(opInt.getAsInt());
+            }
         }
-        int maxResult = 0;
-        if (!resultLessList.isEmpty()) {
-            maxResult = resultLessList.stream().mapToInt(Integer::intValue).max().getAsInt();
-        }
-        int minResult = 0;
-        if (!resultLessList.isEmpty()) {
-            minResult = resultLessList.stream().mapToInt(Integer::intValue).min().getAsInt();
-        }
-
-        return new ResponseEntity<>(resultLessList + "\nAverage: " + averageResult + "\nMax result: " +
-                maxResult + "\nMin result: " + minResult, HttpStatus.OK);
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @GetMapping("/counter")
