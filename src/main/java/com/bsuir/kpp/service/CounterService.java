@@ -1,9 +1,6 @@
-package com.bsuir.kpp;
+package com.bsuir.kpp.service;
 
-import org.springframework.stereotype.Service;
-
-@Service
-public class CounterService{
+public class CounterService {
     private static int counter;
 
     public static synchronized void increment() {

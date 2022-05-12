@@ -1,20 +1,20 @@
 package com.bsuir.kpp;
 
+import com.bsuir.kpp.service.CounterService;
+import com.bsuir.kpp.service.LogicService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import javax.validation.ConstraintViolationException;
+import javax.validation.Valid;
 import javax.validation.constraints.Min;
-import java.util.Map;
+import java.util.*;
 
 @Validated
 @RestController
@@ -30,7 +30,7 @@ public class GenerationController {
         if (hashMap.containsKeyInHashMapLess(number)) {
             return hashMap.getParametersLess(number);
         } else {
-            GeneratedNumber result = new GeneratedNumber((int) (Math.random() * (number + 1)));
+            GeneratedNumber result = LogicService.findLess(number);
             hashMap.addToMapLess(number, result);
             logger.info("Success request get random number less");
             return result;
@@ -43,11 +43,67 @@ public class GenerationController {
         if (hashMap.containsKeyInHashMapMore(number)) {
             return hashMap.getParametersMore(number);
         } else {
-            GeneratedNumber result = new GeneratedNumber((int) (Math.random() * 100 + number));
+            GeneratedNumber result = LogicService.findMore(number);
             hashMap.addToMapMore(number, result);
             logger.info("Success request get random number more");
             return result;
         }
+    }
+
+    @PostMapping("/more")
+    public ResponseEntity<?> calculateBulkForMore(@Valid @RequestBody List<Integer> bodyList) {
+        if (bodyList.isEmpty()) {
+            new ResponseEntity<>(new ResultDto(), HttpStatus.OK);
+        }
+        List<GeneratedNumber> resultMoreList = new LinkedList<>();
+        bodyList.forEach(currentElem -> resultMoreList.add(LogicService.findMore(currentElem)));
+
+        logger.info("Successfully postMapping");
+        ResultDto dto = new ResultDto();
+        if (!resultMoreList.isEmpty()) {
+            dto.setList(resultMoreList);
+            OptionalDouble opDouble = resultMoreList.stream().map(GeneratedNumber::getValue).mapToInt(Integer::intValue).average();
+            if (opDouble.isPresent()) {
+                dto.setAverageResult(opDouble.getAsDouble());
+            }
+            OptionalInt opInt = resultMoreList.stream().map(GeneratedNumber::getValue).mapToInt(Integer::intValue).max();
+            if (opInt.isPresent()) {
+                dto.setMaxResult(opInt.getAsInt());
+            }
+            opInt = resultMoreList.stream().map(GeneratedNumber::getValue).mapToInt(Integer::intValue).min();
+            if (opInt.isPresent()) {
+                dto.setMinResult(opInt.getAsInt());
+            }
+        }
+        return new ResponseEntity<>(dto, HttpStatus.OK);
+    }
+
+    @PostMapping("/less")
+    public ResponseEntity<?> calculateBulkForLess(@Valid @RequestBody List<Integer> bodyList) {
+        if (bodyList.isEmpty()) {
+            new ResponseEntity<>(new ResultDto(), HttpStatus.OK);
+        }
+        List<GeneratedNumber> resultMoreList = new LinkedList<>();
+        bodyList.forEach(currentElem -> resultMoreList.add(LogicService.findLess(currentElem)));
+
+        logger.info("Successfully postMapping");
+        ResultDto dto = new ResultDto();
+        if (!resultMoreList.isEmpty()) {
+            dto.setList(resultMoreList);
+            OptionalDouble opDouble = resultMoreList.stream().map(GeneratedNumber::getValue).mapToInt(Integer::intValue).average();
+            if (opDouble.isPresent()) {
+                dto.setAverageResult(opDouble.getAsDouble());
+            }
+            OptionalInt opInt = resultMoreList.stream().map(GeneratedNumber::getValue).mapToInt(Integer::intValue).max();
+            if (opInt.isPresent()) {
+                dto.setMaxResult(opInt.getAsInt());
+            }
+            opInt = resultMoreList.stream().map(GeneratedNumber::getValue).mapToInt(Integer::intValue).min();
+            if (opInt.isPresent()) {
+                dto.setMinResult(opInt.getAsInt());
+            }
+        }
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @GetMapping("/counter")
